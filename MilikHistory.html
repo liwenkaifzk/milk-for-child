@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>喂奶记录</title>
+    <style>
+        body {
+            background-color: #f2f4f5;
+            margin: 0;
+            padding: 0;
+            font-family: Poppins;
+        }
+
+        h1 {
+            padding: 0;
+            margin: 0;
+        }
+
+        .milk-history {
+            position: relative;
+            height: 30vh;
+        }
+
+        .title {
+            background-color: white;
+            font-size: 22px;
+            padding: 8px 20px;
+        }
+
+        .clock, .last-history {
+            background-color: white;
+            border-radius: 5%;
+            margin: 15px;
+        }
+
+        .last-history {
+            padding: 20px;
+        }
+
+        .last-history div {
+            margin-top: 2px;
+        }
+
+        .clock {
+            height: 60vh;
+            /*flex 布局*/
+            display: flex;
+            /*实现垂直居中*/
+            align-items: center;
+            /*实现水平居中*/
+            justify-content: center;
+        }
+
+        .clock-btn {
+            border-radius: 100%;
+            color: white;
+            background-color: #EED05DFF;
+            width: 30vh;
+            height: 30vh;
+            margin: 0 auto;
+            text-align: center;
+
+        }
+
+        .clock-btn .btn {
+            margin-top: 11vh;
+        }
+
+        .bottom-container {
+            width: 100%;
+            position: absolute;
+            bottom: 0;
+            background-color: white;
+            border-top: 1px #ccc;
+            height: 10vh;
+        }
+
+        .bottom-container span {
+            display: inline-block;
+            width: 49%;
+            height: 10vh;
+            text-align: center;
+            padding: 0;
+            margin: 0;
+            line-height: 10vh;
+        }
+
+        .bottom-container span.active {
+            color: #EED05DFF;
+        }
+
+        .record {
+            margin: 8px 5px;
+            height: 36px;
+            background-color: white;
+            padding: 8px 20px;
+        }
+
+        .history-container {
+            overflow-y: scroll;
+            height: 80vh;
+        }
+
+        .history-container .title, .history-container .remarks {
+            font-size: 14px;
+            padding: 0;
+        }
+
+        .history-container .title {
+            font-size: 16px;
+        }
+
+        .history-container .remarks {
+            color: #cccccc;
+        }
+
+        .modal {
+            position: absolute;
+            width: 30vh;
+            padding: 20px;
+            top: 50vh;
+            margin-top: -25vh;
+            background-color: white;
+            margin-left: -15vh;
+            left: 25vh;
+            z-index: 2;
+        }
+
+        .mask {
+            background-color: #0F0F0F;
+            opacity: 0.5;
+            width: 57vh;
+            height: 100vh;
+            z-index: 1;
+            top: 0;
+            position: absolute;
+        }
+
+        .modal span {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 10px 25px;
+            border-radius: 2px;
+            font-size: 12px;
+            color: white;
+            background-color: rgba(238, 208, 93, 0.7);
+        }
+
+        .modal .active {
+            background-color: #EED05DFF;
+        }
+    </style>
+</head>
+<body>
+<div class="title">李木槿喂奶记录</div>
+<div class="clock-container">
+    <div class="last-history">
+        <div style="color: rgba(180,180,180,0.9);font-size: 14px">上次喂奶记录:</div>
+        <div id="lastRecords" style="font-size: 16px; margin: 6px 0px">无</div>
+        <div id="lastRemarks" style="font-size: 12px;color: rgba(180,180,180,0.95)">无</div>
+    </div>
+
+    <div class="clock">
+        <div class="clock-btn" onclick="showModal(true)">
+            <div class="btn">喂奶打卡</div>
+            <div class="time">09:08:06</div>
+        </div>
+    </div>
+</div>
+<div class="history-container" style="display: none">
+    <div class="record">
+        <div class="title">无</div>
+        <div class="remarks">备注:今天第三次喂养</div>
+    </div>
+</div>
+
+<div class="bottom-container">
+    <span class="clockIn active" onclick="showContent(1)">打卡</span>
+    <span class="addUp" onclick="showContent(2)">统计</span>
+</div>
+<div class="modal" style="display: none">
+    <div style="font-size: 12px;margin-top: 5px">当前时间:</div>
+    <div class="time" style="color: #6f6d6d">08:09:06</div>
+
+    <div style="font-size: 12px;margin-top: 10px">此前喂奶量:</div>
+    <input id='capacity' style="height: 30px" type="number" pattern="[0-9]*" placeholder="120">
+
+    <div style="font-size: 12px;margin-top: 10px">喂奶方式:</div>
+    <span class="bottle active" onclick="chooseWay(1)">瓶喂</span>
+    <span class="person" onclick="chooseWay(2)">亲喂</span>
+    <div style="font-size: 12px;margin-top: 10px">备注:</div>
+    <input id='remark' style="height: 30px" type="text" placeholder="无备注">
+    <span style="margin-top: 20px;padding: 10px 25px" onclick="saveData()">确定</span>
+    <span style="margin-top: 20px;padding: 10px 25px" onclick="showModal(false)">取消</span>
+</div>
+<div class="mask" style="display: none"></div>
+</body>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+  let ways = '瓶喂', timer = 0;
+  /**
+   * 智能时间转换
+   * @param timestamp 需要转换的毫秒数
+   * @returns {string} 转换后的字符串
+   */
+  window.parseTime = (timestamp, cutting) => {
+    let date = new Date(timestamp);
+    let cuts = cutting ? [cutting, cutting, ' '] : ['年', '月', '日 '];
+    let sendTime = date.getFullYear() + cuts[0] +
+      (date.getMonth() + 1) + cuts[1] +
+      date.getDate() + cuts[2] +
+      date.getHours() + ":" +
+      (date.getMinutes().toString().length > 1 ? date.getMinutes() : "0" + date.getMinutes());
+    let nowDate = new Date();
+    if (nowDate.getFullYear() === date.getFullYear() && nowDate.getMonth() === date.getMonth()) {
+      if (nowDate.getDate() === date.getDate()) {
+        sendTime = (date.getHours().toString().length > 1 ? date.getHours() : '0' + date.getHours()) + ":" + (date.getMinutes().toString().length > 1 ? date.getMinutes() : "0" + date.getMinutes());
+      } else if (nowDate.getDate() - 1 === date.getDate()) {
+        sendTime = "昨天 " + date.getHours() + ":" + (date.getMinutes().toString().length > 1 ? date.getMinutes() : "0" + date.getMinutes());
+      }
+    }
+    return sendTime + ":" + (date.getSeconds().toString().length > 1 ? date.getSeconds() : '0' + date.getSeconds());
+  }
+
+  window.showContent = (val) => {
+    if (val == 1) {
+      $(".addUp.active").removeClass('active')
+      $(".clockIn").addClass('active')
+
+      $(".clock-container").show();
+      $(".history-container").hide();
+    }
+
+    if (val == 2) {
+      $(".clockIn.active").removeClass('active')
+      $(".addUp").addClass('active')
+
+      $(".history-container").show();
+      $(".clock-container").hide();
+      loadData();
+    }
+  }
+
+  window.chooseWay = (val) => {
+    if (val == 1) {
+      $(".person.active").removeClass('active')
+      $(".bottle").addClass('active')
+      ways = '瓶喂';
+    }
+
+    if (val == 2) {
+      $(".bottle.active").removeClass('active')
+      $(".person").addClass('active')
+      ways = '亲喂';
+    }
+  }
+
+  window.showModal = (enable) => {
+    document.getElementById('remark').value = '';
+    document.getElementById('capacity').value = '';
+    $(".person.active").removeClass('active')
+    $(".bottle").addClass('active')
+    ways = '瓶喂';
+    if (enable) {
+      $(".modal").show();
+      $(".mask").show();
+      $("#capacity").focus()
+    } else {
+      $(".modal").hide();
+      $(".mask").hide();
+    }
+  }
+
+  window.saveData = () => {
+    let recordsJSON = localStorage.getItem('records')
+    let records = (recordsJSON == null || recordsJSON == "undefined") ? [] : JSON.parse(recordsJSON);
+    let remark = document.getElementById('remark').value;
+    let capacity = document.getElementById('capacity').value;
+    let json = {
+      time: Date.now(),
+      ways,
+      remark,
+      capacity: capacity == "" ? '120' : capacity,
+    }
+    records.push(json);
+    localStorage.setItem('records', JSON.stringify(records));
+
+    window.showModal(false);
+
+    window.loadData();
+  }
+
+  window.deleteRecord = (index)=>{
+    let recordsJSON = localStorage.getItem('records')
+    let records = (recordsJSON == null || recordsJSON == "undefined") ? [] : JSON.parse(recordsJSON);
+    records.reverse()
+    records.splice(index,1);
+    records.reverse()
+    console.log(index)
+    localStorage.setItem('records', JSON.stringify(records));
+    window.loadData();
+  }
+
+  window.loadData = () => {
+    clearInterval(timer);
+    timer = setInterval(() => {
+      document.getElementsByClassName('time')[0].innerHTML = window.parseTime(Date.now());
+      document.getElementsByClassName('time')[1].innerHTML = window.parseTime(Date.now());
+    }, 1000)
+
+    let recordsJSON = localStorage.getItem('records')
+    let records = (recordsJSON == null || recordsJSON == "undefined") ? [] : JSON.parse(recordsJSON);
+
+    let lastRecords = records[records.length - 1];
+    if (lastRecords) {
+      document.getElementById('lastRecords').innerHTML =
+        window.parseTime(lastRecords.time) + " " + lastRecords.capacity + "ml" + " " + lastRecords.ways;
+      document.getElementById('lastRemarks').innerHTML = '备注:' + (lastRecords.remark ? lastRecords.remark : '无');
+    } else {
+      document.getElementById('lastRecords').innerHTML = "无"
+      document.getElementById('lastRemarks').innerHTML = "无";
+    }
+    let html = '';
+    records.reverse();
+    for (let i = 0; i < records.length; i++) {
+      let record = records[i];
+      let title = window.parseTime(record.time) + " " + record.capacity + "ml" + " " + record.ways;
+      html = html + ` <div class="record" id="${record.time}">
+        <div class="title">${title}</div>
+        <div class="remarks">备注:${record.remark ? record.remark : '无'}</div>
+        <div class="delete" style="float: right;margin-top: -33px;color: red;" onclick="deleteRecord(${i})"> 删除</div>
+    </div>`
+    }
+    $('.history-container').empty();
+    $('.history-container').append(html);
+  }
+
+
+  window.loadData();
+</script>
+</html>
